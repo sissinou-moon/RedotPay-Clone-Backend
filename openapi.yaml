@@ -190,9 +190,19 @@ paths:
           description: Refresh token is invalid or expired
 
   /ton/generate-ton-address:
-    get:
+    post:
       tags: [TON]
       summary: Generate a new TON wallet address
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id]
+              properties:
+                user_id:
+                  type: string
       responses:
         '200':
           description: TON Address Generated Successfully
@@ -202,9 +212,6 @@ paths:
                 success: true
                 message: "TON Address Generated Successfully!"
                 data:
-                  mnemonic: "word1word2..."
-                  private_key: "abc..."
-                  public_key: "def..."
                   address: "0Q..."
         '500':
           description: Failed To Generate TON Address
@@ -214,3 +221,4 @@ paths:
                 success: false
                 message: "Failed To Generate TON Address!"
                 data: null
+
