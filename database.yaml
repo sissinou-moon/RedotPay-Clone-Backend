@@ -1,0 +1,319 @@
+database:
+  name: redotpay_clone
+  engine: postgresql
+  schema: public
+
+tables:
+
+  users:
+    description: Application users
+    columns:
+      id:
+        type: text
+        primary_key: true
+        nullable: false
+
+      username:
+        type: text
+        nullable: true
+
+      email:
+        type: text
+        nullable: false
+        unique: true
+
+      password:
+        type: text
+        nullable: true
+        sensitive: true
+
+      status:
+        type: enum
+        enum_name: users_status
+        nullable: true
+
+      balance:
+        type: numeric
+        default: 0
+
+      created_at:
+        type: timestamptz
+        nullable: true
+
+    relations:
+      wallets:
+        type: one-to-one
+        table: wallets
+        foreign_key: user_id
+
+      devices:
+        type: one-to-many
+        table: devices
+        foreign_key: user_id
+
+      sessions:
+        type: one-to-many
+        table: sessions
+        foreign_key: user_id
+
+      otp:
+        type: one-to-many
+        table: otp
+        foreign_key: user_id
+
+  wallets:
+    description: User wallets per blockchain
+    columns:
+      id:
+        type: text
+        primary_key: true
+
+      user_id:
+        type: text
+        nullable: false
+        unique: true
+
+      mnemonic:
+        type: text[]
+        nullable: false
+        sensitive: true
+
+      private_key:
+        type: text
+        nullable: true
+        sensitive: true
+
+      public_key:
+        type: text
+        nullable: true
+
+      address:
+        type: text
+        nullable: false
+
+      blockchain:
+        type: text
+        nullable: true
+
+      status:
+        type: text
+        nullable: true
+
+      created_at:
+        type: timestamptz
+        nullable: true
+
+    relations:
+      user:
+        type: many-to-one
+        table: users
+        foreign_key: user_id
+
+      assets:
+        type: one-to-many
+        table: assets
+        foreign_key: wallet_id
+
+      transactions:
+        type: one-to-many
+        table: transactions
+        foreign_key: wallet_id
+
+  assets:
+    description: Wallet assets (tokens / coins)
+    columns:
+      id:
+        type: text
+        primary_key: true
+
+      wallet_id:
+        type: text
+        nullable: false
+
+      symbol:
+        type: text
+        nullable: false
+
+      token_address:
+        type: text
+        nullable: true
+
+      blockchain:
+        type: text
+        nullable: true
+
+      balance:
+        type: numeric
+        nullable: true
+
+    relations:
+      wallet:
+        type: many-to-one
+        table: wallets
+        foreign_key: wallet_id
+
+  transactions:
+    description: Blockchain and internal transactions
+    columns:
+      id:
+        type: text
+        primary_key: true
+
+      wallet_id:
+        type: text
+        nullable: true
+
+      asset_id:
+        type: text
+        nullable: true
+
+      tx_hash:
+        type: text
+        nullable: true
+
+      amount:
+        type: numeric
+        nullable: true
+
+      direction:
+        type: text
+        nullable: true
+        description: incoming | outgoing
+
+      status:
+        type: text
+        nullable: true
+
+      verified_by:
+        type: text
+        nullable: true
+
+      verified_at:
+        type: timestamptz
+        nullable: true
+
+      created_at:
+        type: timestamptz
+        nullable: true
+
+    relations:
+      wallet:
+        type: many-to-one
+        table: wallets
+        foreign_key: wallet_id
+
+      asset:
+        type: many-to-one
+        table: assets
+        foreign_key: asset_id
+
+  sessions:
+    description: User authentication sessions
+    columns:
+      id:
+        type: text
+        primary_key: true
+
+      device_id:
+        type: text
+        nullable: true
+
+      ip:
+        type: text
+        nullable: true
+
+      refresh_token:
+        type: text
+        nullable: false
+        sensitive: true
+
+      status:
+        type: text
+        nullable: true
+
+      last_seen:
+        type: timestamptz
+        nullable: true
+
+      expires_at:
+        type: timestamptz
+        nullable: false
+
+      created_at:
+        type: timestamptz
+        nullable: true
+
+  otp:
+    description: One-time passwords for verification
+    columns:
+      id:
+        type: text
+        primary_key: true
+
+      otp:
+        type: text
+        nullable: false
+        sensitive: true
+
+      user_id:
+        type: text
+        nullable: false
+
+      verified:
+        type: boolean
+        nullable: true
+
+      expires_at:
+        type: timestamptz
+        nullable: true
+
+      created_at:
+        type: timestamptz
+        nullable: true
+
+    relations:
+      user:
+        type: many-to-one
+        table: users
+        foreign_key: user_id
+
+  devices:
+    description: User devices
+    columns:
+      id:
+        type: text
+        primary_key: true
+
+      user_id:
+        type: text
+        nullable: false
+
+      ip:
+        type: text
+        nullable: true
+
+      user_agent:
+        type: text
+        nullable: true
+
+      os:
+        type: text
+        nullable: true
+
+      type:
+        type: text
+        nullable: true
+
+      trusted:
+        type: boolean
+        nullable: true
+
+      device_name:
+        type: text
+        nullable: true
+
+    relations:
+      user:
+        type: many-to-one
+        table: users
+        foreign_key: user_id
