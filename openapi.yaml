@@ -191,6 +191,33 @@ paths:
         '400':
           description: Refresh token is invalid or expired
 
+  /auth/user-data:
+    get:
+      tags: [Authentication]
+      summary: Get authenticated user data (profile, wallet, and assets)
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User data fetched successfully
+          content:
+            application/json:
+              example:
+                success: true
+                message: "User Data Fetched Successfully!"
+                data:
+                  user: { id: "...", email: "...", username: "..." }
+                  wallet: { id: "...", address: "...", balance: 0 }
+                  assets: [{ symbol: "TON", balance: 0 }]
+        '403':
+          description: Missing User ID in token payload
+        '404':
+          description: User, Wallet, or Assets not found
+        '401':
+          description: Unauthorized - Missing or invalid token
+        '402':
+          description: Token Expired
+
   /ton/generate-ton-address:
     post:
       tags: [TON]
@@ -248,3 +275,11 @@ paths:
           description: Missing required fields
         '400':
           description: Wallet/Asset not found or Insufficient balance or Transaction failed
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
