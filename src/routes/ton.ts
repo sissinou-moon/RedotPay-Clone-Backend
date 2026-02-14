@@ -1,5 +1,5 @@
 import { mnemonicNew, mnemonicToPrivateKey } from "@ton/crypto";
-import { WalletContractV4 } from "@ton/ton";
+import { TonClient, WalletContractV4 } from "@ton/ton";
 import { Hono } from "hono";
 import { generateUUID } from "../services/engineGeneration";
 import { sql } from "../db/db";
@@ -26,7 +26,7 @@ tonRoute.post("/generate-ton-address", async (c: any) => {
                 success: false,
                 message: "Missing user_id!",
                 data: null,
-            }, 400);
+            }, 403);
         }
 
         // 2. Generate TON Wallet
@@ -83,7 +83,54 @@ tonRoute.post("/generate-ton-address", async (c: any) => {
             message: "Failed To Generate TON Address!",
             error: error.message,
             data: null,
-        }, 500);
+        }, 400);
     }
 });
 
+
+tonRoute.post("/send-ton", async (c: any) => {
+    const { user_id, amount, receiver, symbol } = await c.req.json();
+
+    if (!user_id || !amount || !receiver) {
+        return c.json({
+            success: false,
+            message: "Missing required fields!",
+            data: null,
+        }, 403);
+    }
+
+    try {
+        const [wallet] = await sql`SELECT * FROM wallets WHERE user_id = ${user_id} LIMIT 1`;
+
+        if (!wallet) {
+            return c.json({
+                success: false,
+                message: "Wallet not found!",
+                data: null,
+            }, 400);
+        }
+
+        const [asset] = await sql`SELECT * FROM assets WHERE wallet_id = ${wallet.id} AND symbol = ${symbol}`;
+
+        if (!asset) {
+            return c.json({
+                success: false,
+                message: "Asset not found!",
+                data: null,
+            }, 400);
+        }
+
+        if (asset.balance < amount) {
+            return c.json({
+                success: false,
+                message: "Insufficient balance!",
+                data: null,
+            }, 400);
+        }
+
+
+
+    } catch (error: any) {
+
+    }
+})

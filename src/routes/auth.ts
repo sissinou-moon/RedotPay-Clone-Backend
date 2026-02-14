@@ -54,13 +54,13 @@ auth.post("/sign-up", async (c: any) => {
                 access_token: accessToken,
                 user: insertUserRow,
             }
-        })
+        }, 200)
     } catch (error) {
         return c.json({
             success: false,
             message: "Something Went Wrong!",
             data: null,
-        })
+        }, 400)
     }
 });
 
@@ -155,7 +155,7 @@ auth.post("/send-otp", async (c: any) => {
         return c.json({
             success: false,
             message: "Faild To Send OTP!"
-        }, 500)
+        }, 400)
     }
 
     return c.json({
@@ -194,7 +194,7 @@ auth.post("/verify-otp", async (c: any) => {
             success: false,
             message: "OTP Expired!",
             data: null,
-        }, 500);
+        }, 400);
     } else if (otpRow.otp === newOTPHashed) {
         return c.json({
             success: true,
@@ -209,7 +209,7 @@ auth.post("/verify-otp", async (c: any) => {
             success: false,
             message: "Faild To Verify OTP!",
             data: null,
-        }, 500);
+        }, 400);
     }
 })
 
@@ -359,6 +359,6 @@ auth.post("/check", async (c: any) => {
             success: false,
             message: "Refresh Token Is Not Valid!",
             data: null,
-        }, 500);
+        }, 400);
     }
 });
