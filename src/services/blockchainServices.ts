@@ -6,7 +6,7 @@ const client = new TonClient({
     apiKey: '8ca8cb418abf8387ea965e5a338aa2f3b13ae5a548e82e5ae244cd842cf592d1' // Get one from @tonapibot on Telegram
 });
 
-async function sendTon(mnemonic: string[], toAddress: string, amount: string) {
+export async function sendTon(mnemonic: string[], toAddress: string, amount: string) {
     const keyPair = await mnemonicToPrivateKey(mnemonic);
     const wallet = WalletContractV4.create({ workchain: 0, publicKey: keyPair.publicKey });
     const contract = client.open(wallet);
@@ -28,12 +28,12 @@ async function sendTon(mnemonic: string[], toAddress: string, amount: string) {
     });
 }
 
-async function sendJeton(mnemonic: string[], toAddress: string, amount: number, jetonAddress: string) {
+export async function sendJetton(mnemonic: string[], toAddress: string, amount: number, jettonAddress: string) {
     const keyPair = await mnemonicToPrivateKey(mnemonic);
     const wallet = WalletContractV4.create({ workchain: 0, publicKey: keyPair.publicKey });
     const contract = client.open(wallet);
 
-    const USDT_MASTER = Address.parse(jetonAddress);
+    const USDT_MASTER = Address.parse(jettonAddress);
 
     // 1. Find YOUR specific USDT wallet address
     // In TON, every user has a unique wallet for every Jetton

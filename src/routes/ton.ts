@@ -3,6 +3,7 @@ import { TonClient, WalletContractV4 } from "@ton/ton";
 import { Hono } from "hono";
 import { generateUUID } from "../services/engineGeneration";
 import { sql } from "../db/db";
+import { sendJetton, sendTon } from "../services/blockchainServices";
 
 export const tonRoute = new Hono();
 
@@ -128,9 +129,24 @@ tonRoute.post("/send-ton", async (c: any) => {
             }, 400);
         }
 
+        if (symbol === "TON") {
+            await sendTon(wallet.mnemonic, receiver, amount);
+        } else if (symbol === "USDT") {
+            await sendJetton(wallet.mnemonic, receiver, amount, "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs");
+        }
 
+        return c.json({
+            success: true,
+            message: "Transaction successful!",
+            data: null,
+        }, 200);
 
     } catch (error: any) {
-
+        return c.json({
+            success: false,
+            message: "Failed to send transaction!",
+            error: error.message,
+            data: null,
+        }, 400);
     }
 })

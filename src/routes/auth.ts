@@ -3,6 +3,7 @@ import { sql } from "../db/db";
 import { signAccessToken, signRefreshToken, verifyAccessToken } from "../middleware/jwt";
 import { sendOTP } from "../services/messageServices";
 import { generateOTP, generateUsername, generateUUID, hashText } from "../services/engineGeneration";
+import { authMiddleware } from "../middleware/authMiddleware";
 
 export const auth = new Hono();
 
@@ -80,7 +81,7 @@ auth.post("/sign-in", async (c: any) => {
     }
 
     const [session] = await sql`
-        SELECT * FROM sessions WHERE user_id = ${user.id} AND status = ACTIVE AND expires_at > NOW() LIMIT 1
+        SELECT * FROM sessions WHERE user_id = ${user.id} AND status = 'ACTIVE' AND expires_at > NOW() LIMIT 1
     `;
 
     if (session) {
@@ -238,7 +239,7 @@ auth.post("/session-device", async (c: any) => {
 
     const [user] = await sql`
       SELECT * FROM users
-      WHERE user_id = ${user_id}
+      WHERE id = ${user_id}
       LIMIT 1
     `;
 
@@ -250,13 +251,13 @@ auth.post("/session-device", async (c: any) => {
 
             await sql`
               UPDATE sessions
-              SET status = REVOKED
+              SET status = 'REVOKED'
               WHERE user_id = ${user_id}
             `;
 
             await sql`
                 INSERT INTO sessions (id, ip, device_id, refresh_token, status, last_seen, expires_at, created_at)
-                VALUES (${sessionID}, ${ip}, ${device.device_id}, ${refresh_token}, ACTIVE, NOW(), NOW() + INTERVAL '7 days', NOW())
+                VALUES (${sessionID}, ${ip}, ${device.device_id}, ${refresh_token}, 'ACTIVE', NOW(), NOW() + INTERVAL '7 days', NOW())
             `;
 
             return c.json({
@@ -275,7 +276,7 @@ auth.post("/session-device", async (c: any) => {
 
             await sql`
               UPDATE sessions
-              SET status = REVOKED
+              SET status = 'REVOKED'
               WHERE user_id = ${user_id}
             `;
 
@@ -289,7 +290,7 @@ auth.post("/session-device", async (c: any) => {
 
             await sql`
                 INSERT INTO sessions (id, ip, device_id, refresh_token, status, last_seen, expires_at, created_at)
-                VALUES (${sessionID}, ${ip}, ${device.device_id}, ${refresh_token}, ACTIVE, NOW(), NOW() + INTERVAL '7 days', NOW())
+                VALUES (${sessionID}, ${ip}, ${device.device_id}, ${refresh_token}, 'ACTIVE', NOW(), NOW() + INTERVAL '7 days', NOW())
             `;
 
             return c.json({
@@ -316,7 +317,7 @@ auth.post("/session-device", async (c: any) => {
 
         await sql`
           UPDATE sessions
-          SET status = REVOKED
+          SET status = 'REVOKED'
           WHERE user_id = ${user_id}
         `;
 
@@ -327,7 +328,7 @@ auth.post("/session-device", async (c: any) => {
 
         await sql`
             INSERT INTO sessions (id, ip, device_id, refresh_token, status, last_seen, expires_at, created_at)
-            VALUES (${sessionID}, ${ip}, ${device_id}, ${refresh_token}, ACTIVE, NOW(), NOW() + INTERVAL '7 days', NOW())
+            VALUES (${sessionID}, ${ip}, ${device_id}, ${refresh_token}, 'ACTIVE', NOW(), NOW() + INTERVAL '7 days', NOW())
         `;
 
         return c.json({
@@ -362,3 +363,70 @@ auth.post("/check", async (c: any) => {
         }, 400);
     }
 });
+
+auth.get("/user-data", authMiddleware, async (c: any) => {
+
+    const payload = c.get("user");
+    const user_id = payload.user_id;
+
+    if (!user_id) {
+        return c.json({
+            success: false,
+            message: "Missing User ID!",
+            data: null,
+        }, 403)
+    }
+
+    const [user] = await sql`
+      SELECT * FROM users
+      WHERE id = ${user_id}
+      LIMIT 1
+    `;
+
+    if (!user) {
+        return c.json({
+            success: false,
+            message: "User Not Found!",
+            data: null,
+        }, 404)
+    }
+
+    const [user_wallet] = await sql`
+      SELECT * FROM wallets
+      WHERE user_id = ${user_id}
+      LIMIT 1
+    `;
+
+    if (!user_wallet) {
+        return c.json({
+            success: false,
+            message: "Wallet Not Found!",
+            data: null,
+        }, 404)
+    }
+
+    const user_assets = await sql`
+      SELECT * FROM assets
+      WHERE wallet_id = ${user_wallet.id}
+    `;
+
+    if (!user_assets) {
+        return c.json({
+            success: false,
+            message: "Assets Not Found!",
+            data: null,
+        }, 404)
+    }
+
+    return c.json({
+        success: true,
+        message: "User Data Fetched Successfully!",
+        data: {
+            user: user,
+            wallet: user_wallet,
+            assets: user_assets,
+        },
+    }, 200)
+})
+
+

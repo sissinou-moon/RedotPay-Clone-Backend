@@ -49,7 +49,7 @@ paths:
             application/json:
               example:
                 success: true
-                message: User Created Successfully!
+                message: "User Created Successfully!"
                 data:
                   refresh_token: "..."
                   access_token: "..."
@@ -58,6 +58,8 @@ paths:
           description: Missing email or password
         '406':
           description: User already exists
+        '400':
+          description: Something went wrong
 
   /auth/sign-in:
     post:
@@ -108,7 +110,7 @@ paths:
           description: OTP sent successfully
         '403':
           description: Missing data
-        '500':
+        '400':
           description: Failed to send OTP
 
   /auth/verify-otp:
@@ -134,7 +136,7 @@ paths:
           description: OTP verified successfully
         '403':
           description: Missing data
-        '500':
+        '400':
           description: OTP expired or verification failed
 
   /auth/session-device:
@@ -186,7 +188,7 @@ paths:
       responses:
         '200':
           description: Refresh token is valid
-        '500':
+        '400':
           description: Refresh token is invalid or expired
 
   /ton/generate-ton-address:
@@ -213,12 +215,36 @@ paths:
                 message: "TON Address Generated Successfully!"
                 data:
                   address: "0Q..."
-        '500':
-          description: Failed To Generate TON Address
-          content:
-            application/json:
-              example:
-                success: false
-                message: "Failed To Generate TON Address!"
-                data: null
+        '403':
+          description: Missing user_id
+        '400':
+          description: Invalid JSON body or failed generation
 
+  /ton/send-ton:
+    post:
+      tags: [TON]
+      summary: Send TON or Jetton (USDT)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id, amount, receiver, symbol]
+              properties:
+                user_id:
+                  type: string
+                amount:
+                  type: number
+                receiver:
+                  type: string
+                symbol:
+                  type: string
+                  enum: [TON, USDT]
+      responses:
+        '200':
+          description: Transaction successful
+        '403':
+          description: Missing required fields
+        '400':
+          description: Wallet/Asset not found or Insufficient balance or Transaction failed
