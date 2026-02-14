@@ -28,12 +28,12 @@ async function sendTon(mnemonic: string[], toAddress: string, amount: string) {
     });
 }
 
-async function sendUsdt(mnemonic: string[], toAddress: string, amount: number) {
+async function sendJeton(mnemonic: string[], toAddress: string, amount: number, jetonAddress: string) {
     const keyPair = await mnemonicToPrivateKey(mnemonic);
     const wallet = WalletContractV4.create({ workchain: 0, publicKey: keyPair.publicKey });
     const contract = client.open(wallet);
 
-    const USDT_MASTER = Address.parse("EQCxE6mCXbxWzWjdyfkv-9hzIn93Y_30M67u94F-9f8o-H4M");
+    const USDT_MASTER = Address.parse(jetonAddress);
 
     // 1. Find YOUR specific USDT wallet address
     // In TON, every user has a unique wallet for every Jetton
