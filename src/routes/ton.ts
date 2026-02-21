@@ -57,14 +57,14 @@ tonRoute.post("/generate-ton-address", async (c: any) => {
 
             // Insert TON Asset
             await tx`
-                INSERT INTO assets (id, wallet_id, symbol, token_address, blockchain, balance)
-                VALUES (${generateUUID()}, ${walletRow.id}, 'TON', 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c', 'TON', 0)
+                INSERT INTO assets (id, wallet_id, symbol, token_address, blockchain, balance, token_id)
+                VALUES (${generateUUID()}, ${walletRow.id}, 'TON', 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c', 'TON', 0, 'the-open-network')
             `;
 
             // Insert USDT Asset (TON)
             await tx`
-                INSERT INTO assets (id, wallet_id, symbol, token_address, blockchain, balance)
-                VALUES (${generateUUID()}, ${walletRow.id}, 'USDT', 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs', 'TON', 0)
+                INSERT INTO assets (id, wallet_id, symbol, token_address, blockchain, balance, token_id)
+                VALUES (${generateUUID()}, ${walletRow.id}, 'USDT', 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs', 'TON', 0, 'tether')
             `;
 
             return { address: walletAddress };
@@ -153,13 +153,13 @@ tonRoute.post("/send-ton", async (c: any) => {
 })
 
 
-tonRoute.post("/assets/data", async (c) => {
+tonRoute.post("/assets/price", async (c) => {
     try {
         const { symbols } = await c.req.json()
 
         if (!Array.isArray(symbols) || symbols.length === 0) {
             return c.json(
-                { success: false, message: "Symbols Array Required!", data: null },
+                { success: false, message: "Symbols Array Required!", data: symbols },
                 403
             )
         }

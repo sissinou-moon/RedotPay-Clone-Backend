@@ -276,7 +276,7 @@ paths:
         '400':
           description: Wallet/Asset not found or Insufficient balance or Transaction failed
 
-  /ton/assets/data:
+  /ton/assets/price:
     post:
       tags: [TON]
       summary: Fetch asset data (price, market cap, etc.) from CoinGecko
@@ -318,6 +318,24 @@ paths:
                         market_cap: { type: number }
                         change_24h: { type: number }
                         image: { type: string }
+              example:
+                success: true
+                message: "Fetched successfully!"
+                data:
+                  - id: "the-open-network"
+                    name: "Toncoin"
+                    symbol: "ton"
+                    price_usd: 5.42
+                    market_cap: 13782910283
+                    change_24h: -1.2
+                    image: "https://assets.coingecko.com/coins/images/17980/large/ton_symbol.png"
+                  - id: "tether"
+                    name: "Tether"
+                    symbol: "usdt"
+                    price_usd: 1.00
+                    market_cap: 110293847561
+                    change_24h: 0.01
+                    image: "https://assets.coingecko.com/coins/images/325/large/tether.png"
         '403':
           description: Symbols Array Required!
         '502':
