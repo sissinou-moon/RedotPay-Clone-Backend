@@ -6,6 +6,7 @@ import { sql } from "../db/db";
 import { sendJetton, sendTon } from "../services/blockchainServices";
 
 export const tonRoute = new Hono();
+export const coinGeckoAPIKey = 'CG-jsNXpXgGeg76S3ZUovZCwTJB';
 
 tonRoute.post("/generate-ton-address", async (c: any) => {
     try {
@@ -148,5 +149,54 @@ tonRoute.post("/send-ton", async (c: any) => {
             error: error.message,
             data: null,
         }, 400);
+    }
+})
+
+
+tonRoute.post("/assets/data", async (c) => {
+    try {
+        const { symbols } = await c.req.json()
+
+        if (!Array.isArray(symbols) || symbols.length === 0) {
+            return c.json(
+                { success: false, message: "Symbols Array Required!", data: null },
+                403
+            )
+        }
+
+        const ids = symbols.join(",")
+
+        const response = await fetch(
+            `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}`
+        )
+
+        if (!response.ok) {
+            return c.json(
+                { success: false, message: "Upstream API failed", data: null },
+                502
+            )
+        }
+
+        const data = await response.json()
+
+        return c.json({
+            success: true,
+            message: "Fetched successfully!",
+            data: data.map((coin: any) => ({
+                id: coin.id,
+                name: coin.name,
+                symbol: coin.symbol,
+                price_usd: coin.current_price,
+                market_cap: coin.market_cap,
+                change_24h: coin.price_change_percentage_24h,
+                image: coin.image
+            }))
+        })
+
+    } catch {
+        return c.json(
+            { success: false, message: "Internal server error", data: null },
+            500
+        )
     }
 })

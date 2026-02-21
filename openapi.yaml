@@ -276,6 +276,55 @@ paths:
         '400':
           description: Wallet/Asset not found or Insufficient balance or Transaction failed
 
+  /ton/assets/data:
+    post:
+      tags: [TON]
+      summary: Fetch asset data (price, market cap, etc.) from CoinGecko
+      description: Fetches real-time market data for specified coin IDs using CoinGecko's markets API.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [symbols]
+              properties:
+                symbols:
+                  type: array
+                  description: Array of CoinGecko coin IDs (e.g., ["the-open-network", "tether"])
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Fetched successfully!
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string }
+                        name: { type: string }
+                        symbol: { type: string }
+                        price_usd: { type: number }
+                        market_cap: { type: number }
+                        change_24h: { type: number }
+                        image: { type: string }
+        '403':
+          description: Symbols Array Required!
+        '502':
+          description: Upstream API (CoinGecko) failed
+        '500':
+          description: Internal server error
+
 components:
   securitySchemes:
     BearerAuth:
